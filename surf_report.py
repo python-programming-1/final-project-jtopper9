@@ -1,166 +1,183 @@
 import requests
 import pprint
 import arrow
+import base64
+from email.mime.text import MIMEText
+import mimetypes
+# import os
+# import os.path
+from googleapiclient.discovery import build
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import Request
+import json
+import pandas as pd
+from flask_table import Table, Col
 
 
 """surf_favorites = [
-{'name':"Breakwater", 'lat':33.984760, 'long'= -118.476433},
-{'name':"El Porto", 'lat':33.901905, 'long'= -118.423384},
-{'name':"Sunset", 'lat':34.036350, 'long'= -118.553784},
-{'name':"Staircases", 'lat':34.046291, 'long'= -118.951108}
+{'name': "Breakwater", 'lat': 33.984760, 'long': -118.476433}
+# {'name': "El Porto", 'lat': 33.901905, 'long': -118.423384},
+# {'name': "Sunset", 'lat': 34.036350, 'long': -118.553784},
+# {'name': "Staircases", 'lat': 34.046291, 'long': -118.951108}
 ]
 
 date_time_now = arrow.now('US/Pacific')
 date_time_start = date_time_now.shift(hours=-1)
 date_time_end = date_time_now.shift(hours=+1)
-print(date_time_now)
-print(date_time_start)
-print(date_time_end)
 
-
-response = requests.get(
-  'https://api.stormglass.io/v1/weather/point',
-  params={
-    'lat': 33.984760,
-    'lng': -118.476433,
-    'start': date_time_start.to('UTC').timestamp,  # Convert to UTC timestamp
-    'end': date_time_end.to('UTC').timestamp,  # Convert to UTC timestamp
-    'source':"noaa"
-  },
-  headers={
-    'Authorization': '9ddc9d2c-c6a0-11e9-ba13-0242ac130004-9ddca024-c6a0-11e9-ba13-0242ac130004'
-  }
-)
-
-pprint.pprint(response.json())"""
-
-
-api_results = {'hours': [{'airTemperature': [{'source': 'noaa', 'value': 27.07}],
-            'cloudCover': [{'source': 'noaa', 'value': 0.0}],
-            'currentDirection': [],
-            'currentSpeed': [],
-            'gust': [{'source': 'noaa', 'value': 1.35}],
-            'humidity': [{'source': 'noaa', 'value': 46.9}],
-            'precipitation': [{'source': 'noaa', 'value': 0.0}],
-            'pressure': [{'source': 'noaa', 'value': 1014.82}],
-            'seaLevel': [],
-            'swellDirection': [{'source': 'noaa', 'value': 262.06}],
-            'swellHeight': [{'source': 'noaa', 'value': 0.37}],
-            'swellPeriod': [{'source': 'noaa', 'value': 12.48}],
-            'time': '2019-08-25T17:00:00+00:00',
-            'visibility': [{'source': 'noaa', 'value': 24.13}],
-            'waterTemperature': [{'source': 'noaa', 'value': 32.99}],
-            'waveDirection': [{'source': 'noaa', 'value': 173.17}],
-            'waveHeight': [{'source': 'noaa', 'value': 0.98}],
-            'wavePeriod': [{'source': 'noaa', 'value': 12.6}],
-            'windDirection': [{'source': 'noaa', 'value': 230.67}],
-            'windSpeed': [{'source': 'noaa', 'value': 1.75}],
-            'windWaveDirection': [{'source': 'noaa', 'value': 186.85}],
-            'windWaveHeight': [{'source': 'noaa', 'value': 0.36}],
-            'windWavePeriod': [{'source': 'noaa', 'value': 11.58}]},
-           {'airTemperature': [{'source': 'noaa', 'value': 28.8}],
-            'cloudCover': [{'source': 'noaa', 'value': 0.0}],
-            'currentDirection': [],
-            'currentSpeed': [],
-            'gust': [{'source': 'noaa', 'value': 1.4}],
-            'humidity': [{'source': 'noaa', 'value': 39.9}],
-            'precipitation': [{'source': 'noaa', 'value': 0.0}],
-            'pressure': [{'source': 'noaa', 'value': 1014.65}],
-            'seaLevel': [],
-            'swellDirection': [{'source': 'noaa', 'value': 263.08}],
-            'swellHeight': [{'source': 'noaa', 'value': 0.37}],
-            'swellPeriod': [{'source': 'noaa', 'value': 12.96}],
-            'time': '2019-08-25T18:00:00+00:00',
-            'visibility': [{'source': 'noaa', 'value': 24.14}],
-            'waterTemperature': [{'source': 'noaa', 'value': 36.51}],
-            'waveDirection': [{'source': 'noaa', 'value': 173.56}],
-            'waveHeight': [{'source': 'noaa', 'value': 0.98}],
-            'wavePeriod': [{'source': 'noaa', 'value': 12.53}],
-            'windDirection': [{'source': 'noaa', 'value': 236.9}],
-            'windSpeed': [{'source': 'noaa', 'value': 1.9}],
-            'windWaveDirection': [{'source': 'noaa', 'value': 186.5}],
-            'windWaveHeight': [{'source': 'noaa', 'value': 0.35}],
-            'windWavePeriod': [{'source': 'noaa', 'value': 11.54}]},
-           {'airTemperature': [{'source': 'noaa', 'value': 30.55}],
-            'cloudCover': [{'source': 'noaa', 'value': 16.67}],
-            'currentDirection': [],
-            'currentSpeed': [],
-            'gust': [{'source': 'noaa', 'value': 2.07}],
-            'humidity': [{'source': 'noaa', 'value': 34.83}],
-            'precipitation': [{'source': 'noaa', 'value': 0.0}],
-            'pressure': [{'source': 'noaa', 'value': 1014.18}],
-            'seaLevel': [],
-            'swellDirection': [{'source': 'noaa', 'value': 262.76}],
-            'swellHeight': [{'source': 'noaa', 'value': 0.38}],
-            'swellPeriod': [{'source': 'noaa', 'value': 12.96}],
-            'time': '2019-08-25T19:00:00+00:00',
-            'visibility': [{'source': 'noaa', 'value': 24.14}],
-            'waterTemperature': [{'source': 'noaa', 'value': 38.41}],
-            'waveDirection': [{'source': 'noaa', 'value': 173.68}],
-            'waveHeight': [{'source': 'noaa', 'value': 0.98}],
-            'wavePeriod': [{'source': 'noaa', 'value': 12.43}],
-            'windDirection': [{'source': 'noaa', 'value': 237.57}],
-            'windSpeed': [{'source': 'noaa', 'value': 2.59}],
-            'windWaveDirection': [{'source': 'noaa', 'value': 186.89}],
-            'windWaveHeight': [{'source': 'noaa', 'value': 0.33}],
-            'windWavePeriod': [{'source': 'noaa', 'value': 11.45}]}],
- 'meta': {'cost': 1,
-          'dailyQuota': 50,
-          'end': '2019-08-25 19:50',
-          'lat': 33.98476,
-          'lng': -118.476433,
-          'params': ['waterTemperature',
-                     'wavePeriod',
-                     'waveDirection',
-                     'waveDirection',
-                     'waveHeight',
-                     'windWaveDirection',
-                     'windWaveHeight',
-                     'windWavePeriod',
-                     'swellPeriod',
-                     'swellDirection',
-                     'swellHeight',
-                     'windSpeed',
-                     'windDirection',
-                     'airTemperature',
-                     'precipitation',
-                     'gust',
-                     'cloudCover',
-                     'humidity',
-                     'pressure',
-                     'visibility',
-                     'seaLevel',
-                     'currentSpeed',
-                     'currentDirection'],
-          'requestCount': 1,
-          'source': 'noaa',
-          'start': '2019-08-25 17:00'}}
-
-
-hours_object = api_results['hours']
 
 time_dict = {}
-hourly_dict = {}
-for hour in hours_object:
-    for k, v in hour.items():
-        empty = []
-        if v == empty:
-            pass
-        elif isinstance(v, list):
-            hourly_dict[k] = v[0]['value']
-        else:
-            hourly_dict[k] = v
-            time_dict[str(hour.get('time', 0))] = hourly_dict
+favorites_results = {}
 
-print(time_dict)
+for favorite in surf_favorites:
+    response = requests.get(
+    'https://api.stormglass.io/v1/weather/point',
+        params={
+        'lat': str(favorite.get('lat', 0)),
+        'lng': str(favorite.get('long', 0)),
+        'params': ','.join(['airTemperature', 'currentDirection', 'precipitation', 'seaLevel', 'swellDirection',
+                            'swellHeight', 'swellPeriod', 'waterTemperature', 'waveHeight', 'wavePeriod',
+                            'windDirection', 'windSpeed']),
+        'start': date_time_start.to('UTC').timestamp,  # Convert to UTC timestamp
+        'end': date_time_end.to('UTC').timestamp,  # Convert to UTC timestamp
+        'source':"noaa"
+        },
+        headers={
+        'Authorization': '9ddc9d2c-c6a0-11e9-ba13-0242ac130004-9ddca024-c6a0-11e9-ba13-0242ac130004'
+        }
+    )
+    
+    hours_object = response.json()
+    # print(hours_object)
 
+    favorites_results[str(favorite.get('name', 0))] = {}
+    for hour in hours_object['hours']:
+        time_dict[str(hour.get('time', 0))] = {}
+        for k, v in hour.items():
+            empty = []
+            if v == empty:
+                pass
+            elif isinstance(v, list):
+                value_1 = v[0]['value']
+            else:
+                value_1 = v
+            time_dict[str(hour.get('time', 0))][k] = value_1
+        favorites_results[str(favorite.get('name', 0))] = time_dict
+
+pprint.pprint(time_dict)
+pprint.pprint(favorites_results)"""
+
+
+SCOPES = 'https://www.googleapis.com/auth/gmail.compose'  # Allows sending only, not reading
+CLIENT_SECRETS_FILE = "client_secret.json"
+
+
+def get_authenticated_service():
+    flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRETS_FILE, SCOPES)
+    credentials = flow.run_console()
+    return build('gmail', 'v1', credentials=credentials)
+
+
+def create_message(sender, to, subject, message_text):
+    """Create a message for an email.3
+
+    Args:
+      sender: Email address of the sender.
+      to: Email address of the receiver.
+      subject: The subject of the email message.
+      message_text: The text of the email message.
+
+    Returns:
+      An object containing a base64url encoded email object.
+    """
+
+    message = MIMEText(message_text, 'html')
+    message['to'] = to
+    message['from'] = sender
+    message['subject'] = subject
+    return {'raw': base64.urlsafe_b64encode(message.as_string().encode()).decode()}
+
+
+def send_message(service, user_id, message):
+    """Send an email message.
+
+    Args:
+      service: Authorized Gmail API service instance.
+      user_id: User's email address. The special value "me"
+      can be used to indicate the authenticated user.
+      message: Message to be sent.
+
+    Returns:
+      Sent Message.
+    """
+
+    try:
+        message = (service.users().messages().send(userId=user_id, body=message).execute())
+        print('Message Id: %s' % message['id'])
+        return message
+    except errors.HttpError as error:
+        print(f'An error occurred: {error}')
+        return None
+
+
+sample_response = {'2019-08-31T18:00:00+00:00': {'airTemperature': 29.44,
+                               'currentDirection': 29.44,
+                               'precipitation': 0.0,
+                               'seaLevel': 0.0,
+                               'swellDirection': 206.06,
+                               'swellHeight': 0.37,
+                               'swellPeriod': 14.98,
+                               'time': '2019-08-31T18:00:00+00:00',
+                               'waterTemperature': 36.79,
+                               'waveHeight': 0.87,
+                               'wavePeriod': 16.23,
+                               'windDirection': 229.58,
+                               'windSpeed': 2.4}}
+
+
+"""sample_response1 = """\
+""""<html>
+<head></head>
+<body>
+<p>Contracts that need signed by jeremy<br>
+<br>
+<li>test email<br>
+</body>
+</html>
 """
-new_dict = {}
-for k, v in hours_object.items():
-  empty = []
-  if v == empty:
-    pass
-  elif isinstance(v, list):
-    new_dict[k] = v[0]['value']
-  else:
-    new_dict[k] = v"""
+
+"""niceText = pprint.pformat(sample_response)
+htmlLines = []
+for textLine in pprint.pformat(sample_response).splitlines():
+    htmlLines.append('<br/>%s' % textLine)  # or something even nicer
+htmlText = '\n'.join(htmlLines)
+
+sample_response_json = json.dumps(sample_response).decode('utf-8')
+sample_response_html = json.dumps(sample_response1).encode('utf-8')
+sample_response_string = str(sample_response).encode('utf-8')"""
+
+"""a = sample_response
+df = pd.DataFrame(data=a)
+df = df.fillna(' ').T
+email_html = df.to_html()"""
+
+# Declare your table
+class ItemTable(Table):
+    name = Col('Name')
+    description = Col('Description')
+
+
+# Populate the table
+table = ItemTable(sample_response)
+
+
+sender_email = 'jeremy.topper9@gmail.com'
+to_email = 'jtopper@connexity.com, jeremy.topper9@gmail.com'
+subject_line = 'Daily Surf Report ' + arrow.now('US/Pacific').format('MM-DD-YYYY')
+message_text_sample = table
+
+service = get_authenticated_service()
+
+raw_msg = create_message(sender_email, to_email, subject_line, message_text_sample)
+
+send_message(service, sender_email, raw_msg)
