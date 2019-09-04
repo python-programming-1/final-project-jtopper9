@@ -2,16 +2,14 @@ import requests
 import pprint
 import arrow
 import base64
-from email.mime.text import MIMEText
+import json
+import pandas as pd
+import config
 import mimetypes
-# import os
-# import os.path
+from email.mime.text import MIMEText
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
-import json
-import pandas as pd
-from flask_table import Table, Col
 
 
 surf_favorites = [
@@ -25,9 +23,8 @@ date_time_now = arrow.now('US/Pacific')
 date_time_start = date_time_now.shift(hours=-1)
 date_time_end = date_time_now.shift(hours=+1)
 
-
 favorites_results = {}
-"""for favorite in surf_favorites:
+for favorite in surf_favorites:
     # Call Stormglass API to request conditions for each surf spot
     response = requests.get(
     'https://api.stormglass.io/v1/weather/point',
@@ -63,7 +60,7 @@ favorites_results = {}
                 value_1 = v
             favorites_results[str(favorite.get('name', 0))][str(hour.get('time', 0))][k] = value_1
 
-pprint.pprint(favorites_results)"""
+
 
 # Set scope for GMAIL API
 SCOPES = 'https://www.googleapis.com/auth/gmail.compose'
@@ -97,96 +94,28 @@ def send_message(service, user_id, message):
         return None
 
 
-"""sample_response_json = json.dumps(sample_response).decode('utf-8')
-sample_response_html = json.dumps(sample_response1).encode('utf-8')
-sample_response_string = str(sample_response).encode('utf-8')"""
 
-
-sample_data = {'Staircases': {'2019-09-03T03:00:00+00:00': {'airTemperature': 22.14,
-                                              'currentDirection': 22.14,
-                                              'precipitation': 0.03,
-                                              'seaLevel': 0.03,
-                                              'swellDirection': 225.17,
-                                              'swellHeight': 0.46,
-                                              'swellPeriod': 15.47,
-                                              'time': '2019-09-03T03:00:00+00:00',
-                                              'waterTemperature': 21.75,
-                                              'waveHeight': 0.83,
-                                              'wavePeriod': 15.23,
-                                              'windDirection': 345.93,
-                                              'windSpeed': 1.29},
-                '2019-09-03T04:00:00+00:00': {'airTemperature': 22.13,
-                                              'currentDirection': 22.13,
-                                              'precipitation': 0.02,
-                                              'seaLevel': 0.02,
-                                              'swellDirection': 210.58,
-                                              'swellHeight': 0.47,
-                                              'swellPeriod': 15.02,
-                                              'time': '2019-09-03T04:00:00+00:00',
-                                              'waterTemperature': 21.62,
-                                              'waveHeight': 0.83,
-                                              'wavePeriod': 15.03,
-                                              'windDirection': 42.74,
-                                              'windSpeed': 1.51},
-                '2019-09-03T05:00:00+00:00': {'airTemperature': 22.11,
-                                              'currentDirection': 22.11,
-                                              'precipitation': 0.01,
-                                              'seaLevel': 0.01,
-                                              'swellDirection': 195.98,
-                                              'swellHeight': 0.47,
-                                              'swellPeriod': 14.56,
-                                              'time': '2019-09-03T05:00:00+00:00',
-                                              'waterTemperature': 21.48,
-                                              'waveHeight': 0.82,
-                                              'wavePeriod': 14.82,
-                                              'windDirection': 99.55,
-                                              'windSpeed': 1.74}},
- 'Sunset': {'2019-09-03T03:00:00+00:00': {'airTemperature': 22.14,
-                                          'currentDirection': 22.14,
-                                          'precipitation': 0.03,
-                                          'seaLevel': 0.03,
-                                          'swellDirection': 225.17,
-                                          'swellHeight': 0.46,
-                                          'swellPeriod': 15.47,
-                                          'time': '2019-09-03T03:00:00+00:00',
-                                          'waterTemperature': 21.75,
-                                          'waveHeight': 0.83,
-                                          'wavePeriod': 15.23,
-                                          'windDirection': 345.93,
-                                          'windSpeed': 1.29},
-            '2019-09-03T04:00:00+00:00': {'airTemperature': 22.13,
-                                          'currentDirection': 22.13,
-                                          'precipitation': 0.02,
-                                          'seaLevel': 0.02,
-                                          'swellDirection': 210.58,
-                                          'swellHeight': 0.47,
-                                          'swellPeriod': 15.02,
-                                          'time': '2019-09-03T04:00:00+00:00',
-                                          'waterTemperature': 21.62,
-                                          'waveHeight': 0.83,
-                                          'wavePeriod': 15.03,
-                                          'windDirection': 42.74,
-                                          'windSpeed': 1.51},
-            '2019-09-03T05:00:00+00:00': {'airTemperature': 22.11,
-                                          'currentDirection': 22.11,
-                                          'precipitation': 0.01,
-                                          'seaLevel': 0.01,
-                                          'swellDirection': 195.98,
-                                          'swellHeight': 0.47,
-                                          'swellPeriod': 14.56,
-                                          'time': '2019-09-03T05:00:00+00:00',
-                                          'waterTemperature': 21.48,
-                                          'waveHeight': 0.82,
-                                          'wavePeriod': 14.82,
-                                          'windDirection': 99.55,
-                                          'windSpeed': 1.74}}}
-
-for favorite in sample_data.values():
-    print(favorite)
-    df = pd.DataFrame(data=favorite)
+html_table = {}
+for favorite, hour in favorites_results.items():
+    df = pd.DataFrame(data=hour)
     df = df.fillna(' ').T
-    email_html = df.to_html()
-    # print(email_html)
+    html_table[favorite] = df.to_html()
+
+dictlist = []
+
+
+def printItems(dictObj, indent):
+    for k,v in dictObj.items():
+        print(' '*indent, '<h1>', k, '</h1>', v, '</br>')
+        list_item = '<h1>' + k + '</h1>' + v + '</br>'
+        dictlist.append(list_item)
+
+
+printItems(html_table,0)
+
+email_html = ""
+for x in dictlist:
+    email_html += x
 
 
 sender_email = 'jeremy.topper9@gmail.com'
@@ -199,3 +128,4 @@ service = get_authenticated_service()
 raw_msg = create_message(sender_email, to_email, subject_line, message_text_sample)
 
 send_message(service, sender_email, raw_msg)
+
