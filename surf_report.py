@@ -94,38 +94,45 @@ def send_message(service, user_id, message):
         return None
 
 
-
 html_table = {}
 for favorite, hour in favorites_results.items():
+    # convert values in dictionary to HTML table using pandas module
     df = pd.DataFrame(data=hour)
     df = df.fillna(' ').T
     html_table[favorite] = df.to_html()
 
-dictlist = []
+
+dict_list = []
 
 
-def printItems(dictObj, indent):
-    for k,v in dictObj.items():
-        print(' '*indent, '<h1>', k, '</h1>', v, '</br>')
-        list_item = '<h1>' + k + '</h1>' + v + '</br>'
-        dictlist.append(list_item)
+# Create HTML for email
+def create_html(html_dict):
+    for k, v in html_dict.items():
+        # print(' '*indent, '<h1>', k, '</h1>', v, '</br>')
+        # make key (the location) bold and add table with stats underneath
+        list_item = '<h2>' + k + '</h2>' + v + '</br>'
+        dict_list.append(list_item)
 
 
-printItems(html_table,0)
+create_html(html_table)
 
+# Assign HTML for all spots to variable for GMAIL create message argument
 email_html = ""
-for x in dictlist:
+for x in dict_list:
     email_html += x
 
 
 sender_email = 'jeremy.topper9@gmail.com'
 to_email = 'jtopper@connexity.com, jeremy.topper9@gmail.com'
 subject_line = 'Daily Surf Report ' + arrow.now('US/Pacific').format('MM-DD-YYYY')
-message_text_sample = email_html
+message_text = email_html
 
+# Authenticate GMAIL API
 service = get_authenticated_service()
 
-raw_msg = create_message(sender_email, to_email, subject_line, message_text_sample)
+# Create GMAIL email
+raw_msg = create_message(sender_email, to_email, subject_line, message_text)
 
+# Send GMAIL email
 send_message(service, sender_email, raw_msg)
 
