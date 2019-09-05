@@ -39,10 +39,10 @@ for favorite in surf_favorites:
         'source':"noaa"
         },
         headers={
-        'Authorization': '9ddc9d2c-c6a0-11e9-ba13-0242ac130004-9ddca024-c6a0-11e9-ba13-0242ac130004'
+        'Authorization': ''  # requires authorization key
         }
     )
-    
+
     hours_object = response.json()
 
     # create a nested dictionary with the surf spot name as key
