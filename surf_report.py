@@ -122,8 +122,8 @@ for x in dict_list:
     email_html += x
 
 
-sender_email = 'jeremy.topper9@gmail.com'
-to_email = 'jtopper@connexity.com, jeremy.topper9@gmail.com'
+sender_email = ''  #add send from email
+to_email = ''  # add send to email
 subject_line = 'Daily Surf Report ' + arrow.now('US/Pacific').format('MM-DD-YYYY')
 message_text = email_html
 
